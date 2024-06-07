@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 #include "manga.h"
 
 Manga::Manga() : start_year(0), end_year(0), edition_year(0), total_volumes(0), acquired_volumes(0) {}
@@ -66,19 +67,17 @@ void Manga::print() const {
 }
 
 void addManga(std::vector<Manga>& mangas) {
-    if (mangas.size() >= MAX_MANGAS) {
-        std::cout << "Limite de mangas atingido!\n";
-        return;
-    }
-
     Manga m;
     m.input();
     mangas.push_back(m);
+    updatePrimaryIndex(mangas);
+    updateSecondaryIndex(mangas);
 }
 
 void listMangas(const std::vector<Manga>& mangas) {
-    for (const Manga& m : mangas) {
-        m.print();
+    for (size_t i = 0; i < mangas.size(); ++i) {
+        std::cout << "Manga " << i + 1 << "\n";
+        mangas[i].print();
     }
 }
 
@@ -117,11 +116,11 @@ std::vector<Manga> loadMangasFromFile() {
         return mangas;
     }
 
-    int count;
+    size_t count;
     file >> count;
     file.ignore();
     mangas.resize(count);
-    for (int i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         std::getline(file, mangas[i].ISBN);
         std::getline(file, mangas[i].title);
         std::getline(file, mangas[i].authors);
@@ -151,6 +150,8 @@ void updateManga(std::vector<Manga>& mangas) {
     if (index > 0 && index <= mangas.size()) {
         mangas[index - 1].input();
         saveMangasToFile(mangas);
+        updatePrimaryIndex(mangas);
+        updateSecondaryIndex(mangas);
     } else {
         std::cout << "Número inválido!\n";
     }
@@ -168,11 +169,46 @@ void deleteManga(std::vector<Manga>& mangas) {
         if (confirm == 's' || confirm == 'S') {
             mangas.erase(mangas.begin() + index - 1);
             saveMangasToFile(mangas);
+            updatePrimaryIndex(mangas);
+            updateSecondaryIndex(mangas);
             std::cout << "Manga apagado com sucesso.\n";
         } else {
             std::cout << "Operação cancelada.\n";
         }
     } else {
         std::cout << "Número inválido!\n";
+    }
+}
+
+void updatePrimaryIndex(const std::vector<Manga>& mangas) {
+    std::ofstream index_file(PRIMARY_INDEX_FILE);
+    if (!index_file) {
+        std::cerr << "Erro ao abrir o arquivo de índice primário para escrita!\n";
+        return;
+    }
+
+    for (size_t i = 0; i < mangas.size(); ++i) {
+        index_file << mangas[i].title << " " << i << "\n";
+    }
+}
+
+void updateSecondaryIndex(const std::vector<Manga>& mangas) {
+    std::ofstream index_file(SECONDARY_INDEX_FILE);
+    if (!index_file) {
+        std::cerr << "Erro ao abrir o arquivo de índice secundário para escrita!\n";
+        return;
+    }
+
+    std::unordered_map<std::string, std::vector<size_t>> title_map;
+    for (size_t i = 0; i < mangas.size(); ++i) {
+        title_map[mangas[i].title].push_back(i);
+    }
+
+    for (const auto& pair : title_map) {
+        index_file << pair.first << " ";
+        for (size_t index : pair.second) {
+            index_file << index << " ";
+        }
+        index_file << "\n";
     }
 }

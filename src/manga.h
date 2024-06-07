@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#define MAX_MANGAS 100
-#define MAX_VOLUMES 200
 #define FILE_NAME "mangas.txt"
+#define PRIMARY_INDEX_FILE "primary_index.txt"
+#define SECONDARY_INDEX_FILE "secondary_index.txt"
 
 class Manga {
 public:
@@ -34,5 +34,7 @@ void saveMangasToFile(const std::vector<Manga>& mangas);
 std::vector<Manga> loadMangasFromFile();
 void updateManga(std::vector<Manga>& mangas);
 void deleteManga(std::vector<Manga>& mangas);
+void updatePrimaryIndex(const std::vector<Manga>& mangas);
+void updateSecondaryIndex(const std::vector<Manga>& mangas);
 
 #endif
