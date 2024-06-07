@@ -142,3 +142,37 @@ std::vector<Manga> loadMangasFromFile() {
 
     return mangas;
 }
+
+void updateManga(std::vector<Manga>& mangas) {
+    listMangas(mangas);
+    std::cout << "Digite o número do manga que deseja atualizar: ";
+    size_t index;
+    std::cin >> index;
+    if (index > 0 && index <= mangas.size()) {
+        mangas[index - 1].input();
+        saveMangasToFile(mangas);
+    } else {
+        std::cout << "Número inválido!\n";
+    }
+}
+
+void deleteManga(std::vector<Manga>& mangas) {
+    listMangas(mangas);
+    std::cout << "Digite o número do manga que deseja apagar: ";
+    size_t index;
+    std::cin >> index;
+    if (index > 0 && index <= mangas.size()) {
+        std::cout << "Tem certeza que deseja apagar o manga " << index << "? (s/n): ";
+        char confirm;
+        std::cin >> confirm;
+        if (confirm == 's' || confirm == 'S') {
+            mangas.erase(mangas.begin() + index - 1);
+            saveMangasToFile(mangas);
+            std::cout << "Manga apagado com sucesso.\n";
+        } else {
+            std::cout << "Operação cancelada.\n";
+        }
+    } else {
+        std::cout << "Número inválido!\n";
+    }
+}

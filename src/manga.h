@@ -32,5 +32,7 @@ void addManga(std::vector<Manga>& mangas);
 void listMangas(const std::vector<Manga>& mangas);
 void saveMangasToFile(const std::vector<Manga>& mangas);
 std::vector<Manga> loadMangasFromFile();
+void updateManga(std::vector<Manga>& mangas);
+void deleteManga(std::vector<Manga>& mangas);
 
 #endif
