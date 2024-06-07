@@ -1,27 +1,36 @@
 #ifndef MANGA_H
 #define MANGA_H
 
-#define MAX 100
+#include <string>
+#include <vector>
+
+#define MAX_MANGAS 100
+#define MAX_VOLUMES 200
 #define FILE_NAME "mangas.txt"
 
-typedef struct {
-    char ISBN[20];
-    char title[MAX];
-    char authors[MAX];
-    char genre[MAX];
-    char magazine[MAX];
-    char publisher[MAX];
+class Manga {
+public:
+    std::string ISBN;
+    std::string title;
+    std::string authors;
+    std::string genre;
+    std::string magazine;
+    std::string publisher;
     int start_year;
     int end_year;
     int edition_year;
     int total_volumes;
     int acquired_volumes;
-    int acquired_volumes_list[MAX];
-} Manga;
+    std::vector<int> acquired_volumes_list;
 
-void addManga(Manga mangas[], int *count);
-void listMangas(Manga mangas[], int count);
-void saveMangasToFile(Manga mangas[], int count);
-int loadMangasFromFile(Manga mangas[]);
+    Manga();
+    void input();
+    void print() const;
+};
+
+void addManga(std::vector<Manga>& mangas);
+void listMangas(const std::vector<Manga>& mangas);
+void saveMangasToFile(const std::vector<Manga>& mangas);
+std::vector<Manga> loadMangasFromFile();
 
 #endif

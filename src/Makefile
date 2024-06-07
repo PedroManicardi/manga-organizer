@@ -2,24 +2,22 @@
 TARGET = manga_manager
 
 # Compilador
-CC = gcc
+CXX = g++
 
 # Flags do compilador
-CFLAGS = -Wall -Wextra -Werror -std=c11
+CXXFLAGS = -Wall -Wextra -std=c++11
 
 # Arquivos de origem
-SRC = main.c manga.c
+SRC = main.cpp manga.cpp
 
 # Arquivos de cabeçalho
 HEADERS = manga.h
 
 # Regra principal
 $(TARGET): $(SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
 
 # Limpeza dos arquivos compilados
 clean:
 	rm -f $(TARGET) *.o
-
-# Regra para recompilar tudo do zero
-rebuild: clean $(TARGET)
+	
