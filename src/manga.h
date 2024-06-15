@@ -3,6 +3,9 @@
 
 #define MAX 100
 #define FILE_NAME "mangas.txt"
+#define PRIMARY_INDEX_FILE "primary_index.txt"
+#define SECONDARY_INDEX_FILE "secondary_index.txt"
+#define DELIMITER "|"
 
 typedef struct {
     char ISBN[20];
@@ -22,6 +25,10 @@ typedef struct {
 void addManga(Manga mangas[], int *count);
 void listMangas(Manga mangas[], int count);
 void saveMangasToFile(Manga mangas[], int count);
+void createPrimaryIndex(Manga mangas[], int count);
+void createSecondaryIndex(Manga mangas[], int count);
+int getRecordPositionByTitle(const char *title);
+void retrieveMangaByTitle(const char *title);
 int loadMangasFromFile(Manga mangas[]);
 
 #endif

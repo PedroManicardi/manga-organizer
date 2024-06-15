@@ -1,13 +1,3 @@
-1
-1
-Teste
-Autor teste
-Comedia
-Naruto
-Verde
-2000
-2001
-2010
 2
-1
-2 
+123|Naruto|Jack|Comedia|Tree|Black|2000|2019|2015|10|2|1 0 |
+456|Pokemon|Jack|Acao|Tree|Black|2010|2019|2010|19|1|1 |

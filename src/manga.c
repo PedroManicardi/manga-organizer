@@ -95,25 +95,179 @@ void saveMangasToFile(Manga mangas[], int count) {
     }
     fprintf(file, "%d\n", count);
     for (int i = 0; i < count; i++) {
-        fprintf(file, "%s\n%s\n%s\n%s\n%s\n%s\n%d\n%d\n%d\n%d\n%d\n",
-                mangas[i].ISBN,
-                mangas[i].title,
-                mangas[i].authors,
-                mangas[i].genre,
-                mangas[i].magazine,
-                mangas[i].publisher,
-                mangas[i].start_year,
-                mangas[i].end_year,
-                mangas[i].edition_year,
-                mangas[i].total_volumes,
-                mangas[i].acquired_volumes);
+        char acquired_volumes_str[256]; // buffer para armazenar a string
+        sprintf(acquired_volumes_str, ""); // inicializar buffer
+
         for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            fprintf(file, "%d ", mangas[i].acquired_volumes_list[j]);
+            sprintf(acquired_volumes_str + strlen(acquired_volumes_str), "%d ", mangas[i].acquired_volumes_list[j]);
         }
-        fprintf(file, "\n");
+        fprintf(file, "%s%s%s%s%s%s%s%s%s%s%s%s%d%s%d%s%d%s%d%s%d%s%s%s\n",
+                mangas[i].ISBN, DELIMITER,
+                mangas[i].title, DELIMITER,
+                mangas[i].authors, DELIMITER,
+                mangas[i].genre, DELIMITER,
+                mangas[i].magazine, DELIMITER,
+                mangas[i].publisher, DELIMITER,
+                mangas[i].start_year, DELIMITER,
+                mangas[i].end_year, DELIMITER,
+                mangas[i].edition_year, DELIMITER,
+                mangas[i].total_volumes, DELIMITER,
+                mangas[i].acquired_volumes, DELIMITER,
+                acquired_volumes_str, DELIMITER);
     }
     fclose(file);
 }
+
+void createPrimaryIndex(Manga mangas[], int count) {
+    FILE *file = fopen(PRIMARY_INDEX_FILE, "w");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de índice primário!\n");
+        return;
+    }
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s%s%d\n", mangas[i].ISBN, DELIMITER, i);
+    }
+    fclose(file);
+}
+
+void createSecondaryIndex(Manga mangas[], int count) {
+    FILE *file = fopen(SECONDARY_INDEX_FILE, "w");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de índice secundário!\n");
+        return;
+    }
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s%s%d\n", mangas[i].title, DELIMITER, i);
+    }
+    fclose(file);
+}
+
+int getTotalRecords(FILE *file) {
+    int count = 0;
+    char line[150];
+    fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
+
+    while (fgets(line, sizeof(line), file)) {
+        count++;
+    }
+
+    return count;
+}
+
+int getRecordPositionByTitle(const char *title) {
+    FILE *file = fopen(SECONDARY_INDEX_FILE, "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de índice secundário!\n");
+        return -1;
+    }
+
+    int totalRecords = getTotalRecords(file);
+    char **indexLines = malloc(totalRecords * sizeof(char*));
+    if (indexLines == NULL) {
+        printf("Erro ao alocar memória!\n");
+        fclose(file);
+        return -1;
+    }
+
+    fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
+    for (int i = 0; i < totalRecords; i++) {
+        indexLines[i] = malloc(150 * sizeof(char));
+        if (indexLines[i] == NULL) {
+            printf("Erro ao alocar memória!\n");
+            for (int j = 0; j < i; j++) {
+                free(indexLines[j]);
+            }
+            free(indexLines);
+            fclose(file);
+            return -1;
+        }
+        fgets(indexLines[i], 150, file);
+    }
+
+    fclose(file);
+
+    int low = 0;
+    int high = totalRecords - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        char *token = strtok(indexLines[mid], DELIMITER);
+        if (strcmp(token, title) == 0) {
+            token = strtok(NULL, DELIMITER);
+            int position = atoi(token);
+            for (int i = 0; i < totalRecords; i++) {
+                free(indexLines[i]);
+            }
+            free(indexLines);
+            return position;
+        } else if (strcmp(token, title) < 0) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    for (int i = 0; i < totalRecords; i++) {
+        free(indexLines[i]);
+    }
+    free(indexLines);
+
+    return -1;
+}
+
+void retrieveMangaByTitle(const char *title) {
+    int position = getRecordPositionByTitle(title);
+    if (position == -1) {
+        printf("Título não encontrado no índice secundário.\n");
+        return;
+    }
+
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de dados!\n");
+        return;
+    }
+
+    fseek(file, 0, SEEK_SET);
+    int count;
+    fscanf(file, "%d\n", &count);
+
+    char line[500];
+    for (int i = 0; i <= position; i++) {
+        fgets(line, sizeof(line), file);
+    }
+
+    char *token = strtok(line, DELIMITER);
+    printf("Manga encontrado com sucesso!\n");
+    printf("ISBN: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Título: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Autores: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Gênero: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Revista: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Editora: %s\n", token);
+    token = strtok(NULL, DELIMITER);
+    printf("Ano de início: %d\n", atoi(token));
+    token = strtok(NULL, DELIMITER);
+    printf("Ano de término: %d\n", atoi(token));
+    token = strtok(NULL, DELIMITER);
+    printf("Ano da edição: %d\n", atoi(token));
+    token = strtok(NULL, DELIMITER);
+    printf("Total de volumes: %d\n", atoi(token));
+    token = strtok(NULL, DELIMITER);
+    printf("Volumes adquiridos: %d\n", atoi(token));
+
+
+    char *volumesAdquiridos = strtok(NULL, DELIMITER);
+    printf("Lista de volumes adquiridos: %s\n", volumesAdquiridos);
+
+    fclose(file);
+}
+
 
 int loadMangasFromFile(Manga mangas[]) {
     FILE *file = fopen(FILE_NAME, "r");
