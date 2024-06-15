@@ -162,44 +162,25 @@ int getRecordPositionByTitle(const char *title) {
     }
 
     int totalRecords = getTotalRecords(file);
-    char **indexLines = malloc(totalRecords * sizeof(char*));
-    if (indexLines == NULL) {
-        printf("Erro ao alocar memória!\n");
-        fclose(file);
-        return -1;
-    }
-
-    fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
-    for (int i = 0; i < totalRecords; i++) {
-        indexLines[i] = malloc(150 * sizeof(char));
-        if (indexLines[i] == NULL) {
-            printf("Erro ao alocar memória!\n");
-            for (int j = 0; j < i; j++) {
-                free(indexLines[j]);
-            }
-            free(indexLines);
-            fclose(file);
-            return -1;
-        }
-        fgets(indexLines[i], 150, file);
-    }
-
-    fclose(file);
-
+    char line[150];
     int low = 0;
     int high = totalRecords - 1;
 
     while (low <= high) {
         int mid = low + (high - low) / 2;
-        char *token = strtok(indexLines[mid], DELIMITER);
+        fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
+
+        // Avança até a linha correspondente ao índice mid
+        for (int i = 0; i <= mid; i++) {
+            fgets(line, sizeof(line), file);
+        }
+
+        // Extrai o título do registro atual
+        char *token = strtok(line, DELIMITER);
         if (strcmp(token, title) == 0) {
             token = strtok(NULL, DELIMITER);
-            int position = atoi(token);
-            for (int i = 0; i < totalRecords; i++) {
-                free(indexLines[i]);
-            }
-            free(indexLines);
-            return position;
+            fclose(file);
+            return atoi(token);
         } else if (strcmp(token, title) < 0) {
             low = mid + 1;
         } else {
@@ -207,11 +188,7 @@ int getRecordPositionByTitle(const char *title) {
         }
     }
 
-    for (int i = 0; i < totalRecords; i++) {
-        free(indexLines[i]);
-    }
-    free(indexLines);
-
+    fclose(file);
     return -1;
 }
 
