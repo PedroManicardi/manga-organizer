@@ -39,7 +39,7 @@ int main() {
             case 4:
                 printf("Digite o titulo do manga: ");
                 scanf("%99[^\n]", title);
-                deleteMangaByTitle(title);
+                // deleteMangaByTitle(title);
                 break;
             case 5:
                 printf("Digite o titulo do manga: ");

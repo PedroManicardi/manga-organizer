@@ -1,3 +1,2 @@
-0 ||0
-|1
-Teste|2
+Naruto|0
+Pokemon|1
