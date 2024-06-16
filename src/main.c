@@ -8,21 +8,7 @@
 int main() {
     int choice;
     Manga mangas[MAX];
-    int mangaCount;
-
-    // Verificar se o arquivo de mangas existe
-    FILE *file = fopen(FILE_NAME, "r");
-    if (file == NULL) {
-        // Se não existe, criar o arquivo inicializando com 0 mangas
-        mangaCount = 0;
-        saveMangasToFile(mangas, mangaCount);
-        createPrimaryIndex(mangas, mangaCount);
-        createSecondaryIndex(mangas, mangaCount);
-    } else {
-        // Se existe, carregar os mangas do arquivo
-        fclose(file);
-        mangaCount = loadMangasFromFile(mangas);
-    }
+    int mangaCount = loadMangasFromFile(mangas);
     char title[100];
 
     while (1) {
@@ -65,9 +51,6 @@ int main() {
                 editMangaByTitle(title, mangas, mangaCount);
                 break;
            case 6:
-                // Fechar arquivo de mangas
-                //fclose(file); 
-
                 exit(0);
                 break;
             default:

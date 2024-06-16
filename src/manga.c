@@ -3,6 +3,7 @@
 #include <string.h>
 #include "manga.h"
 
+// Funcao para adicionar um novo manga ao sistema
 void addManga(Manga mangas[], int *count) {
     if (*count >= MAX) {
         printf("Limite de mangas atingido!\n");
@@ -65,7 +66,7 @@ void addManga(Manga mangas[], int *count) {
     (*count)++;
 }
 
-// Função para salvar os registros de mangas em um arquivo
+// Funcao para salvar os registros de mangas em um arquivo
 void saveMangasToFile(Manga mangas[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (file == NULL) {
@@ -98,6 +99,7 @@ void saveMangasToFile(Manga mangas[], int count) {
     fclose(file);
 }
 
+// Funcao para carregar os registros de mangas de um arquivo
 int loadMangasFromFile(Manga mangas[]) {
     FILE *file = fopen(FILE_NAME, "r");
     if (file == NULL) {
@@ -129,6 +131,7 @@ int loadMangasFromFile(Manga mangas[]) {
     return count;
 }
 
+// Funcao para criar o indice primario (ISBN -> posicao no vetor)
 void createPrimaryIndex(Manga mangas[], int count) {
     FILE *file = fopen(PRIMARY_INDEX_FILE, "w");
     if (file == NULL) {
@@ -141,6 +144,7 @@ void createPrimaryIndex(Manga mangas[], int count) {
     fclose(file);
 }
 
+// Funcao para criar o indice secundario (titulo -> posição no vetor)
 void createSecondaryIndex(Manga mangas[], int count) {
     FILE *file = fopen(SECONDARY_INDEX_FILE, "w");
     if (file == NULL) {
@@ -153,10 +157,11 @@ void createSecondaryIndex(Manga mangas[], int count) {
     fclose(file);
 }
 
+// Funcao para obter o numero total de registros em um arquivo
 int getTotalRecords(FILE *file) {
     int count = 0;
     char line[150];
-    fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
+    fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no inicio do arquivo
 
     while (fgets(line, sizeof(line), file)) {
         count++;
@@ -165,6 +170,7 @@ int getTotalRecords(FILE *file) {
     return count;
 }
 
+// Funcao para obter a posicao de um registro pelo titulo no indice secundario
 int getRecordPositionByTitle(const char *title) {
     FILE *file = fopen(SECONDARY_INDEX_FILE, "r");
     if (file == NULL) {
@@ -181,12 +187,12 @@ int getRecordPositionByTitle(const char *title) {
         int mid = low + (high - low) / 2;
         fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
 
-        // Avança até a linha correspondente ao índice mid
+        // Avanca ate a linha correspondente ao indice mid
         for (int i = 0; i <= mid; i++) {
             fgets(line, sizeof(line), file);
         }
 
-        // Extrai o título do registro atual
+        // Extrai o titulo do registro atual
         char *token = strtok(line, DELIMITER);
         if (strcmp(token, title) == 0) {
             token = strtok(NULL, DELIMITER);
@@ -203,6 +209,7 @@ int getRecordPositionByTitle(const char *title) {
     return -1;
 }
 
+// Funcao para recuperar um manga pelo titulo
 void retrieveMangaByTitle(const char *title) {
     int position = getRecordPositionByTitle(title);
     if (position == -1) {
@@ -256,6 +263,7 @@ void retrieveMangaByTitle(const char *title) {
     fclose(file);
 }
 
+// Funcao para recuperar um manga pelo titulo
 void retrieveAllMangaRecords() {
     FILE *file = fopen(FILE_NAME, "r");
     if (file == NULL) {
@@ -384,7 +392,7 @@ void deleteMangaByTitle(const char *title) {
 }
 
 void editMangaByTitle(const char *title, Manga mangas[], int count) {
-    // Passo 1: Localizar o indice do manga pelo titulo
+    // Localizar o indice do manga pelo titulo
     int position = getRecordPositionByTitle(title);
     if (position == -1) {
         printf("Manga nao encontrado...\n");
@@ -392,7 +400,7 @@ void editMangaByTitle(const char *title, Manga mangas[], int count) {
     }
 
     do {
-        // Passo 2: Apresentar opcoes de edicao
+        //  Apresentar opcoes de edicao
         printf("Escolha o que deseja editar:\n");
         printf("1. ISBN\n");
         printf("2. Titulo\n");
@@ -413,7 +421,7 @@ void editMangaByTitle(const char *title, Manga mangas[], int count) {
         scanf("%d", &choice);
         getchar(); // Limpar o buffer do teclado
 
-        // Passo 3: Ler os novos dados e atualizar o campo correspondente
+        // Ler os novos dados e atualizar o campo correspondente
         switch (choice) {
             case 1:
                 printf("Novo ISBN: ");
@@ -485,10 +493,10 @@ void editMangaByTitle(const char *title, Manga mangas[], int count) {
                 break;
         }
 
-        // Passo 4: Salvar as alteracoes no arquivo
+        // Salvar as alteracoes no arquivo
         saveMangasToFile(mangas, count);
 
-        // Passo 5: Reconstruir os indices
+        // Reconstruir os indices
         createPrimaryIndex(mangas, count);
         createSecondaryIndex(mangas, count);
 
@@ -503,6 +511,6 @@ void editMangaByTitle(const char *title, Manga mangas[], int count) {
         }
 
     } while (1);
-    
+
 }
 
