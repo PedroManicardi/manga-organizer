@@ -65,6 +65,7 @@ void addManga(Manga mangas[], int *count) {
     (*count)++;
 }
 
+// Função para salvar os registros de mangas em um arquivo
 void saveMangasToFile(Manga mangas[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (file == NULL) {
@@ -73,11 +74,12 @@ void saveMangasToFile(Manga mangas[], int count) {
     }
     fprintf(file, "%d\n", count);
     for (int i = 0; i < count; i++) {
-        char acquired_volumes_str[256]; // buffer para armazenar a string
-        sprintf(acquired_volumes_str, ""); // inicializar buffer
+        char acquired_volumes_str[256] = ""; // inicializar buffer
 
         for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            sprintf(acquired_volumes_str + strlen(acquired_volumes_str), "%d ", mangas[i].acquired_volumes_list[j]);
+            char volume_str[10];
+            sprintf(volume_str, "%d ", mangas[i].acquired_volumes_list[j]);
+            strcat(acquired_volumes_str, volume_str);
         }
         fprintf(file, "%s%s%s%s%s%s%s%s%s%s%s%s%d%s%d%s%d%s%d%s%d%s%s%s\n",
                 mangas[i].ISBN, DELIMITER,
@@ -94,6 +96,37 @@ void saveMangasToFile(Manga mangas[], int count) {
                 acquired_volumes_str, DELIMITER);
     }
     fclose(file);
+}
+
+int loadMangasFromFile(Manga mangas[]) {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Arquivo não encontrado. Iniciando uma nova coleção.\n");
+        return 0;
+    }
+
+    int count;
+    fscanf(file, "%d\n", &count);
+    for (int i = 0; i < count; i++) {
+        fscanf(file, "%s\n", mangas[i].ISBN);
+        fscanf(file, "%[^\n]\n", mangas[i].title);
+        fscanf(file, "%[^\n]\n", mangas[i].authors);
+        fscanf(file, "%[^\n]\n", mangas[i].genre);
+        fscanf(file, "%[^\n]\n", mangas[i].magazine);
+        fscanf(file, "%[^\n]\n", mangas[i].publisher);
+        fscanf(file, "%d\n", &mangas[i].start_year);
+        fscanf(file, "%d\n", &mangas[i].end_year);
+        fscanf(file, "%d\n", &mangas[i].edition_year);
+        fscanf(file, "%d\n", &mangas[i].total_volumes);
+        fscanf(file, "%d\n", &mangas[i].acquired_volumes);
+        for (int j = 0; j < mangas[i].acquired_volumes; j++) {
+            fscanf(file, "%d", &mangas[i].acquired_volumes_list[j]);
+        }
+        fscanf(file, "\n");
+    }
+    fclose(file);
+
+    return count;
 }
 
 void createPrimaryIndex(Manga mangas[], int count) {
@@ -267,3 +300,209 @@ void retrieveAllMangaRecords() {
 
     fclose(file);
 }
+
+// Funcao para excluir um manga pelo titulo
+void deleteMangaByTitle(const char *title) {
+    int position = getRecordPositionByTitle(title);
+    if (position == -1) {
+        printf("Titulo nao encontrado...\n");
+        return;
+    }
+    // Confirmar remocao
+    char confirmation;
+    printf("Tem certeza que deseja remover o manga \"%s\"? (s/n): ", title);
+    scanf(" %c", &confirmation);
+    getchar(); // Limpar o buffer do teclado
+
+    if (confirmation != 's' && confirmation != 'S') {
+        printf("Operacao de remocao cancelada.\n");
+        return;
+    }
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de dados!\n");
+        return;
+    }
+
+    fseek(file, 0, SEEK_SET);
+    int count;
+    fscanf(file, "%d\n", &count);
+
+    Manga mangas[MAX];
+    int new_count = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (i != position) {
+            char line[500];
+            fgets(line, sizeof(line), file);
+
+            char *token = strtok(line, DELIMITER);
+            strcpy(mangas[new_count].ISBN, token);
+            token = strtok(NULL, DELIMITER);
+            strcpy(mangas[new_count].title, token);
+            token = strtok(NULL, DELIMITER);
+            strcpy(mangas[new_count].authors, token);
+            token = strtok(NULL, DELIMITER);
+            strcpy(mangas[new_count].genre, token);
+            token = strtok(NULL, DELIMITER);
+            strcpy(mangas[new_count].magazine, token);
+            token = strtok(NULL, DELIMITER);
+            strcpy(mangas[new_count].publisher, token);
+            token = strtok(NULL, DELIMITER);
+            mangas[new_count].start_year = atoi(token);
+            token = strtok(NULL, DELIMITER);
+            mangas[new_count].end_year = atoi(token);
+            token = strtok(NULL, DELIMITER);
+            mangas[new_count].edition_year = atoi(token);
+            token = strtok(NULL, DELIMITER);
+            mangas[new_count].total_volumes = atoi(token);
+            token = strtok(NULL, DELIMITER);
+            mangas[new_count].acquired_volumes = atoi(token);
+
+            char *volumes_str = strtok(NULL, DELIMITER);
+            char *vol_token = strtok(volumes_str, " ");
+            mangas[new_count].acquired_volumes = 0;
+            while (vol_token != NULL && mangas[new_count].acquired_volumes < MAX) {
+                mangas[new_count].acquired_volumes_list[mangas[new_count].acquired_volumes++] = atoi(vol_token);
+                vol_token = strtok(NULL, " ");
+            }
+
+            new_count++;
+        } else {
+            char line[500];
+            fgets(line, sizeof(line), file); // Skip the line to be deleted
+        }
+    }
+
+    fclose(file);
+
+    saveMangasToFile(mangas, new_count);
+    createPrimaryIndex(mangas, new_count);
+    createSecondaryIndex(mangas, new_count);
+
+    printf("Manga excluido com sucesso!\n");
+}
+
+void editMangaByTitle(const char *title, Manga mangas[], int count) {
+    // Passo 1: Localizar o indice do manga pelo titulo
+    int position = getRecordPositionByTitle(title);
+    if (position == -1) {
+        printf("Manga nao encontrado...\n");
+        return;
+    }
+
+    do {
+        // Passo 2: Apresentar opcoes de edicao
+        printf("Escolha o que deseja editar:\n");
+        printf("1. ISBN\n");
+        printf("2. Titulo\n");
+        printf("3. Autores\n");
+        printf("4. Genero\n");
+        printf("5. Revista\n");
+        printf("6. Editora\n");
+        printf("7. Ano de inicio\n");
+        printf("8. Ano de termino\n");
+        printf("9. Ano da edicao\n");
+        printf("10. Total de volumes\n");
+        printf("11. Quantidade de volumes adquiridos\n");
+        printf("12. Numeros dos volumes adquiridos\n");
+        printf("13. Voltar ao menu principal\n");
+        printf("Escolha uma opcao: ");
+        
+        int choice;
+        scanf("%d", &choice);
+        getchar(); // Limpar o buffer do teclado
+
+        // Passo 3: Ler os novos dados e atualizar o campo correspondente
+        switch (choice) {
+            case 1:
+                printf("Novo ISBN: ");
+                fgets(mangas[position].ISBN, sizeof(mangas[position].ISBN), stdin);
+                mangas[position].ISBN[strcspn(mangas[position].ISBN, "\n")] = '\0';
+                break;
+            case 2:
+                printf("Novo titulo: ");
+                fgets(mangas[position].title, sizeof(mangas[position].title), stdin);
+                mangas[position].title[strcspn(mangas[position].title, "\n")] = '\0';
+                break;
+            case 3:
+                printf("Novos autores: ");
+                fgets(mangas[position].authors, sizeof(mangas[position].authors), stdin);
+                mangas[position].authors[strcspn(mangas[position].authors, "\n")] = '\0';
+                break;
+            case 4:
+                printf("Novo genero: ");
+                fgets(mangas[position].genre, sizeof(mangas[position].genre), stdin);
+                mangas[position].genre[strcspn(mangas[position].genre, "\n")] = '\0';
+                break;
+            case 5:
+                printf("Nova revista: ");
+                fgets(mangas[position].magazine, sizeof(mangas[position].magazine), stdin);
+                mangas[position].magazine[strcspn(mangas[position].magazine, "\n")] = '\0';
+                break;
+            case 6:
+                printf("Nova editora: ");
+                fgets(mangas[position].publisher, sizeof(mangas[position].publisher), stdin);
+                mangas[position].publisher[strcspn(mangas[position].publisher, "\n")] = '\0';
+                break;
+            case 7:
+                printf("Novo ano de inicio: ");
+                scanf("%d", &mangas[position].start_year);
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 8:
+                printf("Novo ano de termino: ");
+                scanf("%d", &mangas[position].end_year);
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 9:
+                printf("Novo ano da edicao: ");
+                scanf("%d", &mangas[position].edition_year);
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 10:
+                printf("Novo total de volumes: ");
+                scanf("%d", &mangas[position].total_volumes);
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 11:
+                printf("Nova quantidade de volumes adquiridos: ");
+                scanf("%d", &mangas[position].acquired_volumes);
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 12:
+                printf("Novos numeros dos volumes adquiridos (separados por espaco): ");
+                for (int i = 0; i < mangas[position].acquired_volumes; i++) {
+                    scanf("%d", &mangas[position].acquired_volumes_list[i]);
+                }
+                getchar(); // Limpar o buffer do teclado
+                break;
+            case 13:
+                printf("Voltando ao menu principal...\n");
+                return;
+            default:
+                printf("Opcao invalida!\n");
+                break;
+        }
+
+        // Passo 4: Salvar as alteracoes no arquivo
+        saveMangasToFile(mangas, count);
+
+        // Passo 5: Reconstruir os indices
+        createPrimaryIndex(mangas, count);
+        createSecondaryIndex(mangas, count);
+
+        // Perguntar se deseja editar mais algo
+        printf("\nDeseja continuar editando este manga? (s/n): ");
+        char answer;
+        scanf(" %c", &answer);
+        getchar(); // Limpar o buffer do teclado
+        if (answer != 's' && answer != 'S') {
+            printf("Voltando ao menu principal...\n");
+            return;
+        }
+
+    } while (1);
+    
+}
+
