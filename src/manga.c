@@ -65,28 +65,6 @@ void addManga(Manga mangas[], int *count) {
     (*count)++;
 }
 
-void listMangas(Manga mangas[], int count) {
-    for (int i = 0; i < count; i++) {
-        printf("Manga %d\n", i + 1);
-        printf("ISBN: %s\n", mangas[i].ISBN);
-        printf("Título: %s\n", mangas[i].title);
-        printf("Autores: %s\n", mangas[i].authors);
-        printf("Gênero: %s\n", mangas[i].genre);
-        printf("Revista: %s\n", mangas[i].magazine);
-        printf("Editora: %s\n", mangas[i].publisher);
-        printf("Ano de Início: %d\n", mangas[i].start_year);
-        printf("Ano de Fim: %d\n", mangas[i].end_year);
-        printf("Ano da Edição: %d\n", mangas[i].edition_year);
-        printf("Quantidade Total de Volumes: %d\n", mangas[i].total_volumes);
-        printf("Quantidade de Volumes Adquiridos: %d\n", mangas[i].acquired_volumes);
-        printf("Volumes Adquiridos: ");
-        for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            printf("%d ", mangas[i].acquired_volumes_list[j]);
-        }
-        printf("\n----------------------\n");
-    }
-}
-
 void saveMangasToFile(Manga mangas[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (file == NULL) {
@@ -243,38 +221,6 @@ void retrieveMangaByTitle(const char *title) {
     printf("Lista de volumes adquiridos: %s\n", volumesAdquiridos);
 
     fclose(file);
-}
-
-
-int loadMangasFromFile(Manga mangas[]) {
-    FILE *file = fopen(FILE_NAME, "r");
-    if (file == NULL) {
-        printf("Arquivo nao encontrado. Iniciando uma nova colecao.\n");
-        return 0;
-    }
-
-    int count;
-    fscanf(file, "%d\n", &count);
-    for (int i = 0; i < count; i++) {
-        fscanf(file, "%s\n", mangas[i].ISBN);
-        fscanf(file, "%[^\n]\n", mangas[i].title);
-        fscanf(file, "%[^\n]\n", mangas[i].authors);
-        fscanf(file, "%[^\n]\n", mangas[i].genre);
-        fscanf(file, "%[^\n]\n", mangas[i].magazine);
-        fscanf(file, "%[^\n]\n", mangas[i].publisher);
-        fscanf(file, "%d\n", &mangas[i].start_year);
-        fscanf(file, "%d\n", &mangas[i].end_year);
-        fscanf(file, "%d\n", &mangas[i].edition_year);
-        fscanf(file, "%d\n", &mangas[i].total_volumes);
-        fscanf(file, "%d\n", &mangas[i].acquired_volumes);
-        for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            fscanf(file, "%d", &mangas[i].acquired_volumes_list[j]);
-        }
-        fscanf(file, "\n");
-    }
-    fclose(file);
-
-    return count;
 }
 
 void retrieveAllMangaRecords() {
