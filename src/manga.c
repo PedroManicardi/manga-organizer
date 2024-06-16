@@ -276,3 +276,48 @@ int loadMangasFromFile(Manga mangas[]) {
 
     return count;
 }
+
+void retrieveAllMangaRecords() {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de dados!\n");
+        return;
+    }
+
+    fseek(file, 0, SEEK_SET);
+    int count;
+    fscanf(file, "%d\n", &count);
+
+    char line[500];
+    for (int i = 0; i < count; i++) {
+        fgets(line, sizeof(line), file);
+
+        char *token = strtok(line, DELIMITER);
+        printf("ISBN: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Título: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Autores: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Gênero: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Revista: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Editora: %s\n", token);
+        token = strtok(NULL, DELIMITER);
+        printf("Ano de início: %d\n", atoi(token));
+        token = strtok(NULL, DELIMITER);
+        printf("Ano de término: %d\n", atoi(token));
+        token = strtok(NULL, DELIMITER);
+        printf("Ano da edição: %d\n", atoi(token));
+        token = strtok(NULL, DELIMITER);
+        printf("Total de volumes: %d\n", atoi(token));
+        token = strtok(NULL, DELIMITER);
+        printf("Volumes adquiridos: %d\n", atoi(token));
+        char *volumesAdquiridos = strtok(NULL, DELIMITER);
+        printf("Lista de volumes adquiridos: %s\n", volumesAdquiridos);
+        printf("\n----------------------\n");
+    }
+
+    fclose(file);
+}

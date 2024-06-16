@@ -11,7 +11,7 @@ int main() {
     while (1) {
         printf("\nEscolha o que deseja fazer:\n");
         printf("1. Adicionar Manga\n");
-        printf("2. Listar Mangas\n");
+        printf("2. Listar Todos os Mangas\n");
         printf("3. Buscar Manga (pelo titulo)\n");
         printf("4. Apagar Manga (pelo titulo)\n");
         printf("5. Editar Manga (pelo titulo)\n");
@@ -29,7 +29,7 @@ int main() {
                 createSecondaryIndex(mangas, mangaCount);
                 break;
             case 2:
-                listMangas(mangas, mangaCount);
+                retrieveAllMangaRecords();
                 break;
             case 3:
                 printf("Digite o titulo do manga: ");

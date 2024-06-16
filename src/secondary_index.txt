@@ -1,2 +1,2 @@
-Naruto|0
-Pokemon|1
+Manga 1|0
+Manga 2|1
