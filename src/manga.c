@@ -195,7 +195,7 @@ int getRecordPositionByTitle(const char *title) {
 void retrieveMangaByTitle(const char *title) {
     int position = getRecordPositionByTitle(title);
     if (position == -1) {
-        printf("Título não encontrado no índice secundário.\n");
+        printf("Titulo nao encontrado...\n");
         return;
     }
 
@@ -249,7 +249,7 @@ void retrieveMangaByTitle(const char *title) {
 int loadMangasFromFile(Manga mangas[]) {
     FILE *file = fopen(FILE_NAME, "r");
     if (file == NULL) {
-        printf("Arquivo não encontrado. Iniciando uma nova coleção.\n");
+        printf("Arquivo nao encontrado. Iniciando uma nova colecao.\n");
         return 0;
     }
 

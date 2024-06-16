@@ -30,5 +30,6 @@ void createSecondaryIndex(Manga mangas[], int count);
 int getRecordPositionByTitle(const char *title);
 void retrieveMangaByTitle(const char *title);
 int loadMangasFromFile(Manga mangas[]);
+void deleteMangaByTitle(const char *title);
 
 #endif
