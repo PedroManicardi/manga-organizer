@@ -1,0 +1,5 @@
+Attack On Titan|0
+Tokyo Ghoul|1
+Death Note|2
+Naruto|3
+One Piece|4

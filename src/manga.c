@@ -66,40 +66,35 @@ void addManga(Manga mangas[], int *count) {
     (*count)++;
 }
 
-// Funcao para salvar os registros de mangas em um arquivo
+// Função para salvar os registros de mangas em um arquivo
 void saveMangasToFile(Manga mangas[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (file == NULL) {
         printf("Erro ao abrir o arquivo para escrita!\n");
         return;
     }
-    fprintf(file, "%d\n", count);
-    for (int i = 0; i < count; i++) {
-        char acquired_volumes_str[256] = ""; // inicializar buffer
 
+    fprintf(file, "%d\n", count); // Escreve a contagem de mangás no arquivo
+
+    for (int i = 0; i < count; i++) {
+        // Escreve cada campo do manga separado por DELIMITER
+        fprintf(file, "%s|%s|%s|%s|%s|%s|%d|%d|%d|%d|%d|",
+                mangas[i].ISBN, mangas[i].title, mangas[i].authors,
+                mangas[i].genre, mangas[i].magazine, mangas[i].publisher,
+                mangas[i].start_year, mangas[i].end_year, mangas[i].edition_year,
+                mangas[i].total_volumes, mangas[i].acquired_volumes);
+
+        // Escreve a lista de volumes adquiridos
         for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            char volume_str[10];
-            sprintf(volume_str, "%d ", mangas[i].acquired_volumes_list[j]);
-            strcat(acquired_volumes_str, volume_str);
+            fprintf(file, "%d ", mangas[i].acquired_volumes_list[j]);
         }
-        fprintf(file, "%s%s%s%s%s%s%s%s%s%s%s%s%d%s%d%s%d%s%d%s%d%s%s%s\n",
-                mangas[i].ISBN, DELIMITER,
-                mangas[i].title, DELIMITER,
-                mangas[i].authors, DELIMITER,
-                mangas[i].genre, DELIMITER,
-                mangas[i].magazine, DELIMITER,
-                mangas[i].publisher, DELIMITER,
-                mangas[i].start_year, DELIMITER,
-                mangas[i].end_year, DELIMITER,
-                mangas[i].edition_year, DELIMITER,
-                mangas[i].total_volumes, DELIMITER,
-                mangas[i].acquired_volumes, DELIMITER,
-                acquired_volumes_str, DELIMITER);
+        fprintf(file, "\n");
     }
+
     fclose(file);
 }
 
-// Funcao para carregar os registros de mangas de um arquivo
+// Função para carregar os registros de mangas de um arquivo
 int loadMangasFromFile(Manga mangas[]) {
     FILE *file = fopen(FILE_NAME, "r");
     if (file == NULL) {
@@ -110,27 +105,24 @@ int loadMangasFromFile(Manga mangas[]) {
     int count;
     fscanf(file, "%d\n", &count);
     for (int i = 0; i < count; i++) {
-        fscanf(file, "%s\n", mangas[i].ISBN);
-        fscanf(file, "%[^\n]\n", mangas[i].title);
-        fscanf(file, "%[^\n]\n", mangas[i].authors);
-        fscanf(file, "%[^\n]\n", mangas[i].genre);
-        fscanf(file, "%[^\n]\n", mangas[i].magazine);
-        fscanf(file, "%[^\n]\n", mangas[i].publisher);
-        fscanf(file, "%d\n", &mangas[i].start_year);
-        fscanf(file, "%d\n", &mangas[i].end_year);
-        fscanf(file, "%d\n", &mangas[i].edition_year);
-        fscanf(file, "%d\n", &mangas[i].total_volumes);
-        fscanf(file, "%d\n", &mangas[i].acquired_volumes);
+        // Lê cada campo do manga separado por DELIMITER
+        fscanf(file, "%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%d|%d|%d|%d|%d|",
+               mangas[i].ISBN, mangas[i].title, mangas[i].authors,
+               mangas[i].genre, mangas[i].magazine, mangas[i].publisher,
+               &mangas[i].start_year, &mangas[i].end_year, &mangas[i].edition_year,
+               &mangas[i].total_volumes, &mangas[i].acquired_volumes);
+
+        // Lê a lista de volumes adquiridos
         for (int j = 0; j < mangas[i].acquired_volumes; j++) {
-            fscanf(file, "%d", &mangas[i].acquired_volumes_list[j]);
+            fscanf(file, "%d ", &mangas[i].acquired_volumes_list[j]);
         }
         fscanf(file, "\n");
     }
+
     fclose(file);
 
     return count;
 }
-
 // Funcao para criar o indice primario (ISBN -> posicao no vetor)
 void createPrimaryIndex(Manga mangas[], int count) {
     FILE *file = fopen(PRIMARY_INDEX_FILE, "w");
