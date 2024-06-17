@@ -1,5 +1,2 @@
-Attack On Titan|0
-Tokyo Ghoul|1
-Death Note|2
-Naruto|3
-One Piece|4
+Death Note|9781421506230
+Teste 1|123

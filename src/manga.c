@@ -1,7 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "manga.h"
+
+char *strtrim(char *str) {
+    char *end;
+
+    // Remove espaços em branco no início
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    if (*str == 0) { // String vazia
+        return str;
+    }
+
+    // Remove espaços em branco no final
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    // Adiciona o terminador de string
+    *(end + 1) = 0;
+
+    return str;
+}
 
 // Funcao para adicionar um novo manga ao sistema
 void addManga(Manga mangas[], int *count) {
@@ -144,7 +169,7 @@ void createSecondaryIndex(Manga mangas[], int count) {
         return;
     }
     for (int i = 0; i < count; i++) {
-        fprintf(file, "%s%s%d\n", mangas[i].title, DELIMITER, i);
+        fprintf(file, "%s%s%s\n", mangas[i].title, DELIMITER, mangas[i].ISBN);
     }
     fclose(file);
 }
@@ -164,6 +189,7 @@ int getTotalRecords(FILE *file) {
 
 // Funcao para obter a posicao de um registro pelo titulo no indice secundario
 int getRecordPositionByTitle(const char *title) {
+    // Abrir o arquivo de índice secundário para leitura
     FILE *file = fopen(SECONDARY_INDEX_FILE, "r");
     if (file == NULL) {
         printf("Erro ao abrir o arquivo de índice secundário!\n");
@@ -174,22 +200,25 @@ int getRecordPositionByTitle(const char *title) {
     char line[150];
     int low = 0;
     int high = totalRecords - 1;
+    char isbn[20];
+    int found = 0;
 
+    // Busca binária no índice secundário
     while (low <= high) {
         int mid = low + (high - low) / 2;
-        fseek(file, 0, SEEK_SET);  // Posiciona o ponteiro no início do arquivo
+        fseek(file, 0, SEEK_SET);
 
-        // Avanca ate a linha correspondente ao indice mid
+        // Avança até a linha correspondente ao índice mid
         for (int i = 0; i <= mid; i++) {
             fgets(line, sizeof(line), file);
         }
 
-        // Extrai o titulo do registro atual
+        // Extrai o título do registro atual
         char *token = strtok(line, DELIMITER);
         if (strcmp(token, title) == 0) {
-            token = strtok(NULL, DELIMITER);
-            fclose(file);
-            return atoi(token);
+            strcpy(isbn, strtok(NULL, DELIMITER));
+            found = 1;
+            break;
         } else if (strcmp(token, title) < 0) {
             low = mid + 1;
         } else {
@@ -198,7 +227,31 @@ int getRecordPositionByTitle(const char *title) {
     }
 
     fclose(file);
-    return -1;
+
+    if (!found) {
+        
+        return -1;  // Título não encontrado
+    }
+
+    // Abrir o arquivo de índice primário para leitura
+    file = fopen(PRIMARY_INDEX_FILE, "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de índice primário!\n");
+        return -1;
+    }
+
+    // Usa fseek diretamente para encontrar a posição do ISBN
+    while (fgets(line, sizeof(line), file)) {
+        char *token = strtok(line, DELIMITER);
+        if (strcmp(strtrim(token), strtrim(isbn)) == 0) {
+            fclose(file);
+            return atoi(strtrim(strtok(NULL, DELIMITER)));
+        }
+    }
+
+    fclose(file);
+
+    return -1;  // ISBN não encontrado no índice primário
 }
 
 // Funcao para recuperar um manga pelo titulo
