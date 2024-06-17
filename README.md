@@ -7,5 +7,5 @@ make
 ```
 e depois 
 ```bash
-make
+./manga.organizer
 ```
